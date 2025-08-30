@@ -19,6 +19,8 @@ export interface AddCartItemReq {
   quantity: number
 }
 
+export type CartResponse = CartDetails
+
 export const getMyCart = async (): Promise<CartDetails> => {
   const response = await api.get("/cart")
   return response.data

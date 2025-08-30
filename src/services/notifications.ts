@@ -11,6 +11,8 @@ export interface NotificationDto {
   sentAt?: string | null
 }
 
+export type NotificationItem = NotificationDto
+
 export const listNotifications = async (take?: number): Promise<NotificationDto[]> => {
   const params = take ? `?take=${take}` : ""
   const response = await api.get(`/notifications${params}`)

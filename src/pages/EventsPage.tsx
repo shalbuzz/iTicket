@@ -59,7 +59,7 @@ export const EventsPage: React.FC = () => {
   }, [events, searchQuery, categoryFilter])
 
   const handleSearchChange = (value: string) => {
-    const params = new URLSearchParams(searchParams)
+    const params = new URLSearchParams(searchParams.toString())
     if (value) {
       params.set("q", value)
     } else {
@@ -69,7 +69,7 @@ export const EventsPage: React.FC = () => {
   }
 
   const handleCategoryChange = (value: string) => {
-    const params = new URLSearchParams(searchParams)
+    const params = new URLSearchParams(searchParams.toString())
     if (value && value !== "all") {
       params.set("cat", value)
     } else {

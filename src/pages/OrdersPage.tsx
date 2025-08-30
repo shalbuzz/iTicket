@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useSearchParams } from "react-router-dom"
-import { getMyOrders, type OrderListItem } from "../services/orders"
+import { getMyOrders, type OrderListItem, type PageResponse } from "../services/orders"
 import { Card, CardContent } from "../../components/ui/card"
 import { Badge } from "../components/ui/badge"
 import { Button } from "../components/ui/button"
@@ -15,6 +15,7 @@ import { ChevronLeft, ChevronRight } from "../components/icons"
 
 export const OrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<OrderListItem[]>([])
+  const [totalOrders, setTotalOrders] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [searchParams, setSearchParams] = useSearchParams()
@@ -25,8 +26,9 @@ export const OrdersPage: React.FC = () => {
   useEffect(() => {
     const loadOrders = async () => {
       try {
-        const data = await getMyOrders()
-        setOrders(data)
+        const data: PageResponse<OrderListItem> = await getMyOrders(page, pageSize)
+        setOrders(data.items)
+        setTotalOrders(data.total)
       } catch (err: any) {
         setError(err.response?.data?.message || "Failed to load orders")
       } finally {
@@ -37,13 +39,10 @@ export const OrdersPage: React.FC = () => {
     loadOrders()
   }, [page, pageSize])
 
-  const startIndex = (page - 1) * pageSize
-  const endIndex = startIndex + pageSize
-  const paginatedOrders = orders.slice(startIndex, endIndex)
-  const totalPages = Math.ceil(orders.length / pageSize)
+  const totalPages = Math.ceil(totalOrders / pageSize)
 
   const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams)
+    const params = new URLSearchParams(searchParams.toString())
     params.set("page", newPage.toString())
     setSearchParams(params)
   }
@@ -90,7 +89,7 @@ export const OrdersPage: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedOrders.map((order) => (
+                  {orders.map((order) => (
                     <TableRow key={order.id}>
                       <TableCell className="font-mono">#{order.id}</TableCell>
                       <TableCell>
@@ -118,7 +117,7 @@ export const OrdersPage: React.FC = () => {
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                Showing {startIndex + 1} to {Math.min(endIndex, orders.length)} of {orders.length} orders
+                Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, totalOrders)} of {totalOrders} orders
               </p>
               <div className="flex items-center space-x-2">
                 <Button

@@ -150,7 +150,7 @@ function toast({ ...props }: Toast) {
       ...props,
       id,
       open: true,
-      onOpenChange: (open) => {
+      onOpenChange: (open: boolean) => {
         if (!open) dismiss()
       },
     },
@@ -182,5 +182,8 @@ function useToast() {
     dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
   }
 }
+
+toast.success = (message: string) => toast({ title: "Success", description: message })
+toast.error = (message: string) => toast({ title: "Error", description: message, variant: "destructive" })
 
 export { useToast, toast }

@@ -9,27 +9,19 @@ import { Button } from "./ui/button"
 import { Badge } from "./ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
 import { Ticket, Home, ShoppingCart, Bell, Star, LogIn, LogOut, Menu, Moon, Sun } from "./icons"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 
 export const Header: React.FC = () => {
   const { accessToken, logout } = useAuth()
   const navigate = useNavigate()
   const { count: cartCount, refresh: refreshCart } = useCart()
   const { theme, toggleTheme } = useTheme()
-  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
     if (accessToken) {
       refreshCart()
     }
   }, [accessToken, refreshCart])
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener("resize", checkMobile)
-    return () => window.removeEventListener("resize", checkMobile)
-  }, [])
 
   const handleLogout = () => {
     logout()
