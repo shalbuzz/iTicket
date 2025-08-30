@@ -12,16 +12,22 @@ import { Ticket, Home, ShoppingCart, Bell, Star, LogIn, LogOut, Menu, Moon, Sun 
 import { useEffect } from "react"
 
 export const Header: React.FC = () => {
-  const { accessToken, logout } = useAuth()
+  const { accessToken, user, logout, initialize, isInitialized } = useAuth()
   const navigate = useNavigate()
   const { count: cartCount, refresh: refreshCart } = useCart()
   const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
-    if (accessToken) {
+    if (!isInitialized) {
+      initialize()
+    }
+  }, [isInitialized, initialize])
+
+  useEffect(() => {
+    if (accessToken && isInitialized) {
       refreshCart()
     }
-  }, [accessToken, refreshCart])
+  }, [accessToken, refreshCart, isInitialized])
 
   const handleLogout = () => {
     logout()
@@ -98,10 +104,15 @@ export const Header: React.FC = () => {
             </Button>
 
             {accessToken ? (
-              <Button onClick={handleLogout} variant="ghost" aria-label="Logout">
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
+              <div className="flex items-center space-x-2">
+                {user?.name && (
+                  <span className="text-sm text-muted-foreground hidden sm:inline">Hello, {user.name}</span>
+                )}
+                <Button onClick={handleLogout} variant="ghost" aria-label="Logout">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
             ) : (
               <Button asChild>
                 <Link to="/login" className="flex items-center space-x-2" aria-label="Login">

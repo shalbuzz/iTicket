@@ -1,20 +1,53 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../stores/auth"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "./ui/dialog"
 import { Button } from "./ui/button"
+import { Skeleton } from "./ui/skeleton"
 
 interface ProtectedProps {
   children: React.ReactNode
 }
 
 export const Protected: React.FC<ProtectedProps> = ({ children }) => {
-  const { accessToken } = useAuth()
+  const { accessToken, isInitialized, initialize } = useAuth()
   const navigate = useNavigate()
-  const [showDialog, setShowDialog] = useState(!accessToken)
+  const [showDialog, setShowDialog] = useState(false)
+
+  useEffect(() => {
+    if (!isInitialized) {
+      initialize()
+    }
+  }, [isInitialized, initialize])
+
+  useEffect(() => {
+    if (isInitialized && !accessToken) {
+      setShowDialog(true)
+    }
+  }, [isInitialized, accessToken])
+
+  // Show loading skeleton while initializing
+  if (!isInitialized) {
+    return (
+      <div className="mx-auto max-w-6xl p-4 md:p-6">
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-48" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="space-y-3">
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (!accessToken) {
     return (
@@ -29,8 +62,10 @@ export const Protected: React.FC<ProtectedProps> = ({ children }) => {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Please sign in</DialogTitle>
-            <DialogDescription>You need to be signed in to access this page.</DialogDescription>
+            <DialogTitle>Authentication Required</DialogTitle>
+            <DialogDescription>
+              Please sign in to access this page. You'll be redirected to the login page.
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button onClick={() => navigate("/login")}>Go to login</Button>

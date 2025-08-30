@@ -2,20 +2,18 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Link, useSearchParams } from "react-router-dom"
+import { useSearchParams } from "react-router-dom"
 import { motion } from "framer-motion"
 import { listEvents, type EventListItem } from "../services/events"
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
-import { Badge } from "../components/ui/badge"
-import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import { PageTitle } from "../components/PageTitle"
 import { PageContainer } from "../components/PageContainer"
 import { EmptyState } from "../components/EmptyState"
 import { ErrorState } from "../components/ErrorState"
+import { EventCard } from "../components/EventCard"
 import { Skeleton } from "../components/ui/skeleton"
-import { Package } from "../components/icons"
+import { Search, Filter, Ticket } from "../components/icons"
 import { showApiError } from "../lib/api-error"
 
 export const EventsPage: React.FC = () => {
@@ -83,22 +81,27 @@ export const EventsPage: React.FC = () => {
   if (loading) {
     return (
       <PageContainer>
-        <PageTitle>Events</PageTitle>
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <Skeleton className="h-10 flex-1" />
-          <Skeleton className="h-10 w-full sm:w-48" />
+        <PageTitle>Discover Events</PageTitle>
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <div className="relative flex-1">
+            <Skeleton className="h-12 w-full" />
+          </div>
+          <Skeleton className="h-12 w-full sm:w-48" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-3/4 mb-2" />
-                <Skeleton className="h-4 w-1/2" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-16" />
-              </CardContent>
-            </Card>
+            <div key={i} className="space-y-3">
+              <Skeleton className="h-48 w-full rounded-xl" />
+              <div className="space-y-2 p-4">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+                <div className="flex justify-between items-center pt-2">
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-10 w-24" />
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       </PageContainer>
@@ -108,7 +111,7 @@ export const EventsPage: React.FC = () => {
   if (error) {
     return (
       <PageContainer>
-        <PageTitle>Events</PageTitle>
+        <PageTitle>Discover Events</PageTitle>
         <ErrorState message={error} onRetry={() => window.location.reload()} />
       </PageContainer>
     )
@@ -116,72 +119,77 @@ export const EventsPage: React.FC = () => {
 
   return (
     <PageContainer>
-      <PageTitle>Events</PageTitle>
+      <div className="space-y-8">
+        <div className="text-center space-y-4">
+          <PageTitle>Discover Amazing Events</PageTitle>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Find and book tickets for concerts, theater shows, sports events, and more
+          </p>
+        </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <Input
-          placeholder="Search events..."
-          value={searchQuery}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          className="flex-1"
-        />
-        <Select value={categoryFilter || "all"} onValueChange={handleCategoryChange}>
-          <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="All Categories" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {categories.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {/* Enhanced Search and Filter Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border shadow-sm"
+        >
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search events, artists, venues..."
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="pl-10 h-12 bg-background/50 border-border/50 focus:bg-background transition-colors"
+              />
+            </div>
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Select value={categoryFilter || "all"} onValueChange={handleCategoryChange}>
+                <SelectTrigger className="w-full sm:w-48 h-12 pl-10 bg-background/50 border-border/50">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Events Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredEvents.map((event, index) => (
+            <EventCard key={event.id} event={event} index={index} />
+          ))}
+        </div>
+
+        {/* Empty State */}
+        {filteredEvents.length === 0 && !loading && (
+          <EmptyState
+            icon={<Ticket className="h-16 w-16 text-primary/40" />}
+            title="No events found"
+            description={
+              searchQuery || categoryFilter
+                ? "Try adjusting your search criteria or browse all events."
+                : "There are no events available at the moment. Check back later for exciting new events!"
+            }
+            action={
+              searchQuery || categoryFilter
+                ? {
+                    label: "Clear filters",
+                    onClick: () => setSearchParams({}),
+                  }
+                : undefined
+            }
+          />
+        )}
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredEvents.map((event, index) => (
-          <motion.div
-            key={event.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.1 }}
-          >
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="text-lg">{event.title}</CardTitle>
-                {event.category && <Badge variant="secondary">{event.category}</Badge>}
-              </CardHeader>
-              <CardContent>
-                <Button variant="secondary" size="sm" asChild aria-label={`View details for ${event.title}`}>
-                  <Link to={`/events/${event.id}`}>View</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
-      {filteredEvents.length === 0 && !loading && (
-        <EmptyState
-          icon={<Package className="h-12 w-12" />}
-          title="No events found"
-          description={
-            searchQuery || categoryFilter
-              ? "Try adjusting your search criteria or browse all events."
-              : "There are no events available at the moment. Check back later!"
-          }
-          action={
-            searchQuery || categoryFilter
-              ? {
-                  label: "Clear filters",
-                  onClick: () => setSearchParams({}),
-                }
-              : undefined
-          }
-        />
-      )}
     </PageContainer>
   )
 }
