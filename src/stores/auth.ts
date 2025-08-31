@@ -26,21 +26,35 @@ export const useAuth = create<AuthState>()(
       user: null,
       isLoading: false,
       isInitialized: false,
+
       get isAuthenticated() {
-        return !!get().accessToken
+        const storeToken = get().accessToken
+        const localToken = localStorage.getItem("accessToken")
+        const validToken =
+          storeToken || (localToken && localToken !== "undefined" && localToken !== "null" ? localToken : null)
+        return !!validToken
       },
 
       initialize: () => {
-        set({ isInitialized: true })
+        const localToken = localStorage.getItem("accessToken")
+        if (localToken && localToken !== "undefined" && localToken !== "null") {
+          set({ accessToken: localToken, isInitialized: true })
+        } else {
+          set({ isInitialized: true })
+        }
       },
 
       setToken: (token: string, user?: User) => {
         localStorage.setItem("accessToken", token)
+        const newState: Partial<AuthState> = { accessToken: token }
         if (user) {
-          set({ accessToken: token, user })
-        } else {
-          set({ accessToken: token })
+          newState.user = user
         }
+        set(newState)
+
+        setTimeout(() => {
+          set((state) => ({ ...state }))
+        }, 0)
       },
 
       setUser: (user: User) => {
@@ -50,6 +64,7 @@ export const useAuth = create<AuthState>()(
       logout: () => {
         localStorage.removeItem("accessToken")
         localStorage.removeItem("user")
+        localStorage.removeItem("auth-storage")
         set({ accessToken: null, user: null })
       },
     }),
@@ -60,7 +75,7 @@ export const useAuth = create<AuthState>()(
         user: state.user,
       }),
       onRehydrateStorage: () => (state) => {
-        if (state?.accessToken) {
+        if (state?.accessToken && state.accessToken !== "undefined" && state.accessToken !== "null") {
           localStorage.setItem("accessToken", state.accessToken)
         }
       },

@@ -18,15 +18,21 @@ import { FavoritesPage } from "./pages/FavoritesPage"
 import { NotificationsPage } from "./pages/NotificationsPage"
 import { useAuth } from "./stores/auth"
 
-const badToken = localStorage.getItem("accessToken")
-if (badToken === "undefined" || badToken === "null") {
-  localStorage.removeItem("accessToken")
+const cleanupTokens = () => {
+  const badToken = localStorage.getItem("accessToken")
+  if (badToken === "undefined" || badToken === "null" || badToken === "") {
+    localStorage.removeItem("accessToken")
+    localStorage.removeItem("auth-storage")
+  }
 }
+
+cleanupTokens()
 
 const App = () => {
   const { initialize } = useAuth()
 
   useEffect(() => {
+    console.log("[v0] App: Initializing auth...")
     initialize()
   }, [initialize])
 

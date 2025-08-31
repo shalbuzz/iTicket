@@ -58,21 +58,34 @@ export const LoginPage: React.FC = () => {
     setLoading(true)
 
     try {
+      console.log("[v0] Starting login process...")
       const response = await login({ email, password })
+      console.log("[v0] Login response received:", response)
 
       if (response?.access) {
-        localStorage.setItem("accessToken", response.access)
+        setToken(response.access, {
+          id: "temp-id",
+          email,
+          name: email.split("@")[0],
+        })
+
+        console.log("[v0] Token set, checking auth state...")
+
+        toast({
+          title: "Welcome back!",
+          description: "Successfully signed in to your account.",
+        })
+
+        setTimeout(() => {
+          console.log("[v0] Navigating to home...")
+          navigate("/", { replace: true })
+          window.location.reload() // Force refresh to ensure state sync
+        }, 200)
       } else {
-        throw new Error("Invalid login response")
+        throw new Error("Invalid login response - no access token")
       }
-
-      toast({
-        title: "Welcome back!",
-        description: "Successfully signed in to your account.",
-      })
-
-      navigate("/")
     } catch (err: any) {
+      console.log("[v0] Login error:", err)
       if (err.response?.status === 401) {
         setError("Invalid email or password. Please try again.")
       } else if (err.response?.status === 429) {

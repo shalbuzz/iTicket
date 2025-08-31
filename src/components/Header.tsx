@@ -9,13 +9,14 @@ import { Button } from "./ui/button"
 import { Badge } from "./ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
 import { Ticket, Home, ShoppingCart, Bell, Star, LogIn, LogOut, Menu, Moon, Sun } from "./icons"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 export const Header: React.FC = () => {
   const { isAuthenticated, user, logout, initialize, isInitialized } = useAuth()
   const navigate = useNavigate()
   const { count: cartCount, refresh: refreshCart } = useCart()
   const { theme, toggleTheme } = useTheme()
+  const [authState, setAuthState] = useState(false)
 
   useEffect(() => {
     if (!isInitialized) {
@@ -29,8 +30,24 @@ export const Header: React.FC = () => {
     }
   }, [isAuthenticated, refreshCart, isInitialized])
 
+  useEffect(() => {
+    const checkAuthState = () => {
+      const currentAuthState = isAuthenticated
+      if (currentAuthState !== authState) {
+        console.log("[v0] Header: Auth state changed to:", currentAuthState)
+        setAuthState(currentAuthState)
+      }
+    }
+
+    checkAuthState()
+    const interval = setInterval(checkAuthState, 100)
+    return () => clearInterval(interval)
+  }, [isAuthenticated, authState])
+
   const handleLogout = () => {
+    console.log("[v0] Header: Logging out...")
     logout()
+    setAuthState(false)
     navigate("/login")
   }
 
@@ -42,6 +59,8 @@ export const Header: React.FC = () => {
     { to: "/favorites", label: "Favorites", icon: Star },
     { to: "/notifications", label: "Notifications", icon: Bell, badge: 0 },
   ]
+
+  console.log("[v0] Header render - isAuthenticated:", isAuthenticated, "authState:", authState, "user:", user)
 
   return (
     <header className="border-b bg-background">
@@ -103,7 +122,7 @@ export const Header: React.FC = () => {
               {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </Button>
 
-            {isAuthenticated ? (
+            {isAuthenticated || authState ? (
               <div className="flex items-center space-x-2">
                 {user?.name && (
                   <span className="text-sm text-muted-foreground hidden sm:inline">Hello, {user.name}</span>
