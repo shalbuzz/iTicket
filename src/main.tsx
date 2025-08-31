@@ -18,11 +18,12 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/" element={<Layout />}>
-          <Route index element={<EventsPage />} />
-          <Route path="events/:id" element={<EventPage />} />
+        <Route key="login" path="/login" element={<LoginPage />} />
+        <Route key="layout" path="/" element={<Layout />}>
+          <Route key="home" index element={<EventsPage />} />
+          <Route key="event-detail" path="events/:id" element={<EventPage />} />
           <Route
+            key="cart"
             path="cart"
             element={
               <Protected>
@@ -31,6 +32,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             }
           />
           <Route
+            key="checkout"
             path="checkout"
             element={
               <Protected>
@@ -39,6 +41,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             }
           />
           <Route
+            key="orders"
             path="orders"
             element={
               <Protected>
@@ -47,6 +50,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             }
           />
           <Route
+            key="favorites"
             path="favorites"
             element={
               <Protected>
@@ -55,6 +59,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             }
           />
           <Route
+            key="notifications"
             path="notifications"
             element={
               <Protected>

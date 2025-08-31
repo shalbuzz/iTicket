@@ -172,87 +172,103 @@ export const EventPage: React.FC = () => {
         <div className="space-y-6">
           <h2 className="text-2xl font-bold">Available Tickets</h2>
 
-          {event.performances.map((performance, index) => (
-            <motion.div
-              key={performance.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card className="bg-card/50 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Clock className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="text-lg font-semibold">{new Date(performance.startAt).toLocaleDateString()}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(performance.startAt).toLocaleTimeString()}
-                        </p>
+          {event.performances && event.performances.length > 0 ? (
+            event.performances.map((performance, index) => (
+              <motion.div
+                key={performance.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Card className="bg-card/50 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Clock className="h-5 w-5 text-primary" />
+                        <div>
+                          <p className="text-lg font-semibold">{new Date(performance.startAt).toLocaleDateString()}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(performance.startAt).toLocaleTimeString()}
+                          </p>
+                        </div>
                       </div>
-                    </div>
 
-                    {performance.availableSeats && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Users className="h-4 w-4" />
-                        <span>{performance.availableSeats} seats available</span>
-                      </div>
-                    )}
-                  </CardTitle>
-                </CardHeader>
+                      {performance.availableSeats && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Users className="h-4 w-4" />
+                          <span>{performance.availableSeats} seats available</span>
+                        </div>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
 
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Ticket Type</TableHead>
-                          <TableHead>Price</TableHead>
-                          <TableHead className="text-right">Action</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {performance.ticketTypes.map((ticketType) => (
-                          <TableRow key={ticketType.id} className="hover:bg-muted/50">
-                            <TableCell>
-                              <div>
-                                <p className="font-medium">{ticketType.name}</p>
-                                {ticketType.description && (
-                                  <p className="text-sm text-muted-foreground">{ticketType.description}</p>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <span className="text-lg font-bold text-secondary">
-                                {formatCurrency(ticketType.price)}
-                              </span>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button
-                                onClick={() => handleAddToCart(ticketType.id, ticketType.name)}
-                                disabled={addingToCart === ticketType.id}
-                                className="bg-primary hover:bg-primary/90"
-                                aria-label={`Add ${ticketType.name} to cart`}
-                              >
-                                {addingToCart === ticketType.id ? (
-                                  "Adding..."
-                                ) : (
-                                  <>
-                                    <ShoppingCart className="h-4 w-4 mr-2" />
-                                    Add to Cart
-                                  </>
-                                )}
-                              </Button>
-                            </TableCell>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Ticket Type</TableHead>
+                            <TableHead>Price</TableHead>
+                            <TableHead className="text-right">Action</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+                        </TableHeader>
+                        <TableBody>
+                          {performance.ticketTypes && performance.ticketTypes.length > 0 ? (
+                            performance.ticketTypes.map((ticketType) => (
+                              <TableRow key={ticketType.id} className="hover:bg-muted/50">
+                                <TableCell>
+                                  <div>
+                                    <p className="font-medium">{ticketType.name}</p>
+                                    {ticketType.description && (
+                                      <p className="text-sm text-muted-foreground">{ticketType.description}</p>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="text-lg font-bold text-secondary">
+                                    {formatCurrency(ticketType.price)}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <Button
+                                    onClick={() => handleAddToCart(ticketType.id, ticketType.name)}
+                                    disabled={addingToCart === ticketType.id}
+                                    className="bg-primary hover:bg-primary/90"
+                                    aria-label={`Add ${ticketType.name} to cart`}
+                                  >
+                                    {addingToCart === ticketType.id ? (
+                                      "Adding..."
+                                    ) : (
+                                      <>
+                                        <ShoppingCart className="h-4 w-4 mr-2" />
+                                        Add to Cart
+                                      </>
+                                    )}
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                                No ticket types available for this performance
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))
+          ) : (
+            <Card>
+              <CardContent className="text-center py-12">
+                <p className="text-muted-foreground text-lg">No performances available for this event</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </motion.div>
     </PageContainer>
