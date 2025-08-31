@@ -31,35 +31,19 @@ export const useAuth = create<AuthState>()(
       },
 
       initialize: () => {
-        try {
-          const token = localStorage.getItem("accessToken")
-          const userData = localStorage.getItem("user")
-
-          set({
-            accessToken: token,
-            user: userData ? JSON.parse(userData) : null,
-            isInitialized: true,
-          })
-        } catch (error) {
-          console.error("Failed to initialize auth:", error)
-          set({
-            accessToken: null,
-            user: null,
-            isInitialized: true,
-          })
-        }
+        set({ isInitialized: true })
       },
 
       setToken: (token: string, user?: User) => {
         localStorage.setItem("accessToken", token)
         if (user) {
-          localStorage.setItem("user", JSON.stringify(user))
+          set({ accessToken: token, user })
+        } else {
+          set({ accessToken: token })
         }
-        set({ accessToken: token, user: user || get().user })
       },
 
       setUser: (user: User) => {
-        localStorage.setItem("user", JSON.stringify(user))
         set({ user })
       },
 
@@ -75,6 +59,11 @@ export const useAuth = create<AuthState>()(
         accessToken: state.accessToken,
         user: state.user,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.accessToken) {
+          localStorage.setItem("accessToken", state.accessToken)
+        }
+      },
     },
   ),
 )

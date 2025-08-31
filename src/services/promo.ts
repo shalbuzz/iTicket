@@ -20,6 +20,6 @@ export interface PromoCheckResponse {
 }
 
 export const checkPromo = async (req: PromoCheckRequest): Promise<PromoCheckResponse> => {
-  const { data } = await api.post("/promo/check", req)
-  return data
+  const response = await api.post("/promo/check", req)
+  return response.data
 }

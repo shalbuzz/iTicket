@@ -22,7 +22,7 @@ export interface AddCartItemReq {
 export type CartResponse = CartDetails
 
 export const getMyCart = async (): Promise<CartDetails> => {
-  const response = await api.get("/cart/mine")
+  const response = await api.get("/cart")
   return response.data
 }
 
@@ -31,7 +31,7 @@ export const addCartItem = async (req: AddCartItemReq): Promise<void> => {
 }
 
 export const updateCartItem = async (itemId: string, quantity: number): Promise<void> => {
-  await api.patch(`/cart/items/${itemId}`, { quantity })
+  await api.put(`/cart/items/${itemId}`, { quantity })
 }
 
 export const removeCartItem = async (itemId: string): Promise<void> => {

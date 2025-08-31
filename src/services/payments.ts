@@ -19,13 +19,11 @@ export interface PaymentDetails {
   createdAt: string
 }
 
-/** Создать payment intent для заказа */
 export const createIntent = async (orderId: string): Promise<PaymentIntentResponse> => {
-  const response = await api.post(`/payments/${orderId}/intent`)
+  const response = await api.post("/payments/intent", { orderId })
   return response.data
 }
 
-/** Захватить оплату */
 export const capture = async (paymentId: string): Promise<PaymentDetails> => {
   const response = await api.post(`/payments/${paymentId}/capture`)
   return response.data

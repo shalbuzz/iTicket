@@ -59,14 +59,22 @@ export const LoginPage: React.FC = () => {
 
     try {
       const response = await login({ email, password })
-      setToken(response.access, { id: "1", email, name: email.split("@")[0] })
+      const userInfo = {
+        id: response.userId || "1",
+        email,
+        name: response.name || email.split("@")[0],
+      }
+
+      setToken(response.access, userInfo)
 
       toast({
         title: "Welcome back!",
         description: "Successfully signed in to your account.",
       })
 
-      navigate("/")
+      setTimeout(() => {
+        navigate("/")
+      }, 100)
     } catch (err: any) {
       if (err.response?.status === 401) {
         setError("Invalid email or password. Please try again.")

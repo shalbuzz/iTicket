@@ -13,10 +13,8 @@ export interface NotificationDto {
 
 export type NotificationItem = NotificationDto
 
-/** Список уведомлений текущего пользователя */
 export const listNotifications = async (take?: number): Promise<NotificationDto[]> => {
-  const response = await api.get("/notifications/mine", {
-    params: take ? { take } : {},
-  })
+  const params = take ? `?take=${take}` : ""
+  const response = await api.get(`/notifications${params}`)
   return response.data
 }

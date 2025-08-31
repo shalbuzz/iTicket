@@ -1,41 +1,26 @@
-// src/components/icons.ts
-// Единая точка импорта иконок из lucide-react.
-// Добавляй сюда иконки по мере необходимости.
-
 export {
-  // уже используемые ранее
-  AlertCircle,
-  RefreshCw,
-  Wifi,
-  WifiOff,
-  Server,
-  Shield,
-  Search,
-  Calendar,
-  MapPin,
-  Users,
-  Star,
-  Share2,
-  Copy,
-  MessageCircle,
-  Mail,
-
-  // из Header/Pages
-  Ticket,
-  Home,
   ShoppingCart,
   Bell,
+  Star,
   LogIn,
   LogOut,
+  Ticket,
+  CreditCard,
+  Calendar,
+  Home,
   Menu,
+  X,
   Moon,
   Sun,
-  CreditCard,
-  Trash2,
-  Clock,
-  Filter,
-  Eye,
-  EyeOff,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react";
+  Trash2,
+  Package,
+  AlertCircle,
+  RefreshCw,
+  Search,
+  Filter,
+  CheckCircle,
+  Eye,
+  EyeOff,
+} from "lucide-react"
