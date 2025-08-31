@@ -63,24 +63,29 @@ export const LoginPage: React.FC = () => {
       console.log("[v0] Login response received:", response)
 
       if (response?.access) {
-        setToken(response.access, {
+        const user = {
           id: "temp-id",
           email,
           name: email.split("@")[0],
-        })
+        }
 
-        console.log("[v0] Token set, checking auth state...")
+        console.log("[v0] Setting token and user:", { token: response.access, user })
+        setToken(response.access, user)
+
+        const authState = useAuth.getState()
+        console.log("[v0] Auth state after setToken:", {
+          isAuthenticated: authState.isAuthenticated(),
+          hasToken: !!authState.accessToken,
+          user: authState.user,
+        })
 
         toast({
           title: "Welcome back!",
           description: "Successfully signed in to your account.",
         })
 
-        setTimeout(() => {
-          console.log("[v0] Navigating to home...")
-          navigate("/", { replace: true })
-          window.location.reload() // Force refresh to ensure state sync
-        }, 200)
+        console.log("[v0] Navigating to home...")
+        navigate("/", { replace: true })
       } else {
         throw new Error("Invalid login response - no access token")
       }
