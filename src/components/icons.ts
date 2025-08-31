@@ -1,5 +1,9 @@
+// src/components/icons.ts
+// Единая точка импорта иконок из lucide-react.
+// Добавляй сюда иконки по мере необходимости.
+
 export {
-  // ранее используемые
+  // уже используемые ранее
   AlertCircle,
   RefreshCw,
   Wifi,
@@ -16,7 +20,7 @@ export {
   MessageCircle,
   Mail,
 
-  // из твоих новых ошибок
+  // из Header/Pages
   Ticket,
   Home,
   ShoppingCart,
@@ -30,15 +34,8 @@ export {
   Trash2,
   Clock,
   Filter,
-<<<<<<< Updated upstream
-  CheckCircle,
-  Eye,
-  EyeOff,
-} from "lucide-react"
-=======
   Eye,
   EyeOff,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
->>>>>>> Stashed changes
