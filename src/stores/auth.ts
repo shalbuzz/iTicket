@@ -16,7 +16,7 @@ interface AuthState {
   setUser: (user: User) => void
   logout: () => void
   initialize: () => void
-  isAuthenticated: boolean
+  isAuthenticated: () => boolean
 }
 
 export const useAuth = create<AuthState>()(
@@ -27,8 +27,9 @@ export const useAuth = create<AuthState>()(
       isLoading: false,
       isInitialized: false,
 
-      get isAuthenticated() {
-        const storeToken = get().accessToken
+      isAuthenticated: () => {
+        const state = get()
+        const storeToken = state.accessToken
         const localToken = localStorage.getItem("accessToken")
         const validToken =
           storeToken || (localToken && localToken !== "undefined" && localToken !== "null" ? localToken : null)
@@ -51,10 +52,6 @@ export const useAuth = create<AuthState>()(
           newState.user = user
         }
         set(newState)
-
-        setTimeout(() => {
-          set((state) => ({ ...state }))
-        }, 0)
       },
 
       setUser: (user: User) => {
@@ -75,10 +72,12 @@ export const useAuth = create<AuthState>()(
         user: state.user,
       }),
       onRehydrateStorage: () => (state) => {
-        if (state?.accessToken && state.accessToken !== "undefined" && state.accessToken !== "null") {
-          localStorage.setItem("accessToken", state.accessToken)
+        if (state) {
+          state.initialize()
         }
       },
     },
   ),
 )
+
+useAuth.getState().initialize()
