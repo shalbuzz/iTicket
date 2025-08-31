@@ -21,17 +21,19 @@ export interface AddCartItemReq {
 
 export type CartResponse = CartDetails
 
+// было: GET "/cart" → 404
 export const getMyCart = async (): Promise<CartDetails> => {
-  const response = await api.get("/cart")
-  return response.data
+  const { data } = await api.get("/cart/mine")
+  return data
 }
 
 export const addCartItem = async (req: AddCartItemReq): Promise<void> => {
   await api.post("/cart/items", req)
 }
 
+// было: PUT → на бэке PATCH
 export const updateCartItem = async (itemId: string, quantity: number): Promise<void> => {
-  await api.put(`/cart/items/${itemId}`, { quantity })
+  await api.patch(`/cart/items/${itemId}`, { quantity })
 }
 
 export const removeCartItem = async (itemId: string): Promise<void> => {
