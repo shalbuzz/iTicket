@@ -4,14 +4,32 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL as string,
 })
 
+// Helper function to properly validate tokens
+function getToken(): string | null {
+  const raw = localStorage.getItem("accessToken")
+  // Filter out garbage values that might be stored
+  if (!raw || raw === "undefined" || raw === "null") return null
+  return raw
+}
+
 // Request interceptor для добавления токена авторизации
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("accessToken")
-    // Only add Authorization header if token exists and is not "undefined" string
-    if (token && token !== "undefined" && token !== "null") {
-      config.headers.Authorization = `Bearer ${token}`
+    const token = getToken()
+
+    // Don't add token to auth endpoints
+    const url = (config.url ?? "").toLowerCase()
+    const isAuthRoute = url.includes("/auth/login") || url.includes("/auth/register") || url.includes("/auth/refresh")
+
+    config.headers = config.headers ?? {}
+
+    if (!isAuthRoute && token) {
+      ;(config.headers as any).Authorization = `Bearer ${token}`
+    } else {
+      // Remove Authorization header for auth routes
+      delete (config.headers as any).Authorization
     }
+
     return config
   },
   (error) => {
