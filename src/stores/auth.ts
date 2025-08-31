@@ -37,21 +37,48 @@ export const useAuth = create<AuthState>()(
       },
 
       initialize: () => {
+        console.log("[v0] Auth store initializing...")
         const localToken = localStorage.getItem("accessToken")
+        const persistedData = localStorage.getItem("auth-storage")
+
+        console.log("[v0] Local token:", localToken)
+        console.log("[v0] Persisted data:", persistedData)
+
         if (localToken && localToken !== "undefined" && localToken !== "null") {
+          console.log("[v0] Setting token from localStorage:", localToken)
           set({ accessToken: localToken, isInitialized: true })
         } else {
+          console.log("[v0] No valid token found, initializing empty state")
           set({ isInitialized: true })
         }
       },
 
       setToken: (token: string, user?: User) => {
+        console.log("[v0] setToken called with:", { token, user })
+
+        // Save to localStorage first
         localStorage.setItem("accessToken", token)
+        console.log("[v0] Token saved to localStorage")
+
+        // Update Zustand state
         const newState: Partial<AuthState> = { accessToken: token }
         if (user) {
           newState.user = user
+          localStorage.setItem("user", JSON.stringify(user))
         }
+
         set(newState)
+        console.log("[v0] Auth state updated:", newState)
+
+        // Verify the state was set
+        setTimeout(() => {
+          const currentState = get()
+          console.log("[v0] Current auth state after setToken:", {
+            accessToken: currentState.accessToken,
+            user: currentState.user,
+            isAuthenticated: currentState.isAuthenticated(),
+          })
+        }, 100)
       },
 
       setUser: (user: User) => {
@@ -59,10 +86,12 @@ export const useAuth = create<AuthState>()(
       },
 
       logout: () => {
+        console.log("[v0] Logging out...")
         localStorage.removeItem("accessToken")
         localStorage.removeItem("user")
         localStorage.removeItem("auth-storage")
         set({ accessToken: null, user: null })
+        console.log("[v0] Logout complete")
       },
     }),
     {
@@ -72,7 +101,9 @@ export const useAuth = create<AuthState>()(
         user: state.user,
       }),
       onRehydrateStorage: () => (state) => {
+        console.log("[v0] Rehydrating auth storage...")
         if (state) {
+          console.log("[v0] Rehydrated state:", state)
           state.initialize()
         }
       },
@@ -80,4 +111,6 @@ export const useAuth = create<AuthState>()(
   ),
 )
 
+console.log("[v0] Creating auth store...")
 useAuth.getState().initialize()
+console.log("[v0] Auth store created and initialized")
