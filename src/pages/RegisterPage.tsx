@@ -2,10 +2,9 @@
 
 import type React from "react"
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import { motion } from "framer-motion"
-import { useAuth } from "../stores/auth"
-import { login } from "../services/auth"
+import { register } from "../services/auth"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
@@ -14,21 +13,28 @@ import { LoadingSpinner } from "../components/LoadingSpinner"
 import { Ticket, Eye, EyeOff, AlertCircle } from "../components/icons"
 import { toast } from "../hooks/use-toast"
 import { showApiError } from "../lib/api-error"
-import { Link } from "react-router-dom"
 
-export const LoginPage: React.FC = () => {
+export const RegisterPage: React.FC = () => {
+  const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
-  const { setToken } = useAuth()
   const navigate = useNavigate()
 
   const validateForm = () => {
     const errors: Record<string, string> = {}
+
+    if (!fullName.trim()) {
+      errors.fullName = "Full name is required"
+    } else if (fullName.trim().length < 2) {
+      errors.fullName = "Full name must be at least 2 characters"
+    }
 
     if (!email) {
       errors.email = "Email is required"
@@ -40,6 +46,12 @@ export const LoginPage: React.FC = () => {
       errors.password = "Password is required"
     } else if (password.length < 6) {
       errors.password = "Password must be at least 6 characters"
+    }
+
+    if (!confirmPassword) {
+      errors.confirmPassword = "Please confirm your password"
+    } else if (password !== confirmPassword) {
+      errors.confirmPassword = "Passwords do not match"
     }
 
     setFieldErrors(errors)
@@ -58,20 +70,19 @@ export const LoginPage: React.FC = () => {
     setLoading(true)
 
     try {
-      const response = await login({ email, password })
-      setToken(response.access, { id: "1", email, name: email.split("@")[0] })
+      await register({ fullName: fullName.trim(), email, password })
 
       toast({
-        title: "Welcome back!",
-        description: "Successfully signed in to your account.",
+        title: "Account created successfully!",
+        description: "Please sign in with your new account.",
       })
 
-      navigate("/")
+      navigate("/login")
     } catch (err: any) {
-      if (err.response?.status === 401) {
-        setError("Invalid email or password. Please try again.")
-      } else if (err.response?.status === 429) {
-        setError("Too many login attempts. Please wait a moment before trying again.")
+      if (err.response?.status === 409) {
+        setError("An account with this email already exists. Please sign in instead.")
+      } else if (err.response?.status === 422) {
+        setError("Please check your information and try again.")
       } else {
         showApiError(err)
       }
@@ -89,8 +100,8 @@ export const LoginPage: React.FC = () => {
               <Ticket className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-              <p className="text-muted-foreground mt-2">Sign in to your iTicket account</p>
+              <CardTitle className="text-2xl font-bold">Create account</CardTitle>
+              <p className="text-muted-foreground mt-2">Join iTicket to start booking events</p>
             </div>
           </CardHeader>
 
@@ -103,6 +114,23 @@ export const LoginPage: React.FC = () => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  type="text"
+                  placeholder="Enter your full name"
+                  value={fullName}
+                  onChange={(e) => {
+                    setFullName(e.target.value)
+                    if (fieldErrors.fullName) {
+                      setFieldErrors((prev) => ({ ...prev, fullName: "" }))
+                    }
+                  }}
+                  className={fieldErrors.fullName ? "border-destructive focus:border-destructive" : ""}
+                  disabled={loading}
+                />
+                {fieldErrors.fullName && <p className="text-sm text-destructive">{fieldErrors.fullName}</p>}
+              </div>
+
               <div className="space-y-2">
                 <Input
                   type="email"
@@ -124,7 +152,7 @@ export const LoginPage: React.FC = () => {
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
+                    placeholder="Create a password"
                     value={password}
                     onChange={(e) => {
                       setPassword(e.target.value)
@@ -149,20 +177,53 @@ export const LoginPage: React.FC = () => {
                 {fieldErrors.password && <p className="text-sm text-destructive">{fieldErrors.password}</p>}
               </div>
 
+              <div className="space-y-2">
+                <div className="relative">
+                  <Input
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    value={confirmPassword}
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value)
+                      if (fieldErrors.confirmPassword) {
+                        setFieldErrors((prev) => ({ ...prev, confirmPassword: "" }))
+                      }
+                    }}
+                    className={
+                      fieldErrors.confirmPassword ? "border-destructive focus:border-destructive pr-10" : "pr-10"
+                    }
+                    disabled={loading}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    disabled={loading}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+                {fieldErrors.confirmPassword && (
+                  <p className="text-sm text-destructive">{fieldErrors.confirmPassword}</p>
+                )}
+              </div>
+
               <Button
                 type="submit"
                 className="w-full h-11 bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-200"
                 disabled={loading}
               >
-                {loading ? <LoadingSpinner size="sm" /> : "Sign in"}
+                {loading ? <LoadingSpinner size="sm" /> : "Create account"}
               </Button>
             </form>
 
             <div className="text-center text-sm text-muted-foreground">
               <p>
-                Don't have an account?{" "}
-                <Link to="/register" className="text-primary font-medium hover:underline">
-                  Sign up
+                Already have an account?{" "}
+                <Link to="/login" className="text-primary font-medium hover:underline">
+                  Sign in
                 </Link>
               </p>
             </div>

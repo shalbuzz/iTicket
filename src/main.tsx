@@ -8,6 +8,7 @@ import "./index.css"
 import { Layout } from "./components/Layout"
 import { Protected } from "./components/Protected"
 import { LoginPage } from "./pages/LoginPage"
+import { RegisterPage } from "./pages/RegisterPage"
 import { EventsPage } from "./pages/EventsPage"
 import { EventPage } from "./pages/EventPage"
 import { CartPage } from "./pages/CartPage"
@@ -28,6 +29,7 @@ const App = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<EventsPage />} />
           <Route path="events/:id" element={<EventPage />} />
