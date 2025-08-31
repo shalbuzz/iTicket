@@ -16,6 +16,7 @@ interface AuthState {
   setUser: (user: User) => void
   logout: () => void
   initialize: () => void
+  isAuthenticated: boolean
 }
 
 export const useAuth = create<AuthState>()(
@@ -25,16 +26,28 @@ export const useAuth = create<AuthState>()(
       user: null,
       isLoading: false,
       isInitialized: false,
+      get isAuthenticated() {
+        return !!get().accessToken
+      },
 
       initialize: () => {
-        const token = localStorage.getItem("accessToken")
-        const userData = localStorage.getItem("user")
+        try {
+          const token = localStorage.getItem("accessToken")
+          const userData = localStorage.getItem("user")
 
-        set({
-          accessToken: token,
-          user: userData ? JSON.parse(userData) : null,
-          isInitialized: true,
-        })
+          set({
+            accessToken: token,
+            user: userData ? JSON.parse(userData) : null,
+            isInitialized: true,
+          })
+        } catch (error) {
+          console.error("Failed to initialize auth:", error)
+          set({
+            accessToken: null,
+            user: null,
+            isInitialized: true,
+          })
+        }
       },
 
       setToken: (token: string, user?: User) => {

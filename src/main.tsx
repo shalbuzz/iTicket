@@ -1,4 +1,6 @@
-import React from "react"
+"use client"
+
+import React, { useEffect } from "react"
 import ReactDOM from "react-dom/client"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import "./index.css"
@@ -13,17 +15,23 @@ import { CheckoutPage } from "./pages/CheckoutPage"
 import { OrdersPage } from "./pages/OrdersPage"
 import { FavoritesPage } from "./pages/FavoritesPage"
 import { NotificationsPage } from "./pages/NotificationsPage"
+import { useAuth } from "./stores/auth"
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
+const App = () => {
+  const { initialize } = useAuth()
+
+  useEffect(() => {
+    initialize()
+  }, [initialize])
+
+  return (
     <BrowserRouter>
       <Routes>
-        <Route key="login" path="/login" element={<LoginPage />} />
-        <Route key="layout" path="/" element={<Layout />}>
-          <Route key="home" index element={<EventsPage />} />
-          <Route key="event-detail" path="events/:id" element={<EventPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<Layout />}>
+          <Route index element={<EventsPage />} />
+          <Route path="events/:id" element={<EventPage />} />
           <Route
-            key="cart"
             path="cart"
             element={
               <Protected>
@@ -32,7 +40,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             }
           />
           <Route
-            key="checkout"
             path="checkout"
             element={
               <Protected>
@@ -41,7 +48,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             }
           />
           <Route
-            key="orders"
             path="orders"
             element={
               <Protected>
@@ -50,7 +56,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             }
           />
           <Route
-            key="favorites"
             path="favorites"
             element={
               <Protected>
@@ -59,7 +64,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             }
           />
           <Route
-            key="notifications"
             path="notifications"
             element={
               <Protected>
@@ -70,5 +74,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         </Route>
       </Routes>
     </BrowserRouter>
+  )
+}
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <App />
   </React.StrictMode>,
 )

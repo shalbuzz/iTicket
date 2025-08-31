@@ -12,7 +12,7 @@ import { Ticket, Home, ShoppingCart, Bell, Star, LogIn, LogOut, Menu, Moon, Sun 
 import { useEffect } from "react"
 
 export const Header: React.FC = () => {
-  const { accessToken, user, logout, initialize, isInitialized } = useAuth()
+  const { isAuthenticated, user, logout, initialize, isInitialized } = useAuth()
   const navigate = useNavigate()
   const { count: cartCount, refresh: refreshCart } = useCart()
   const { theme, toggleTheme } = useTheme()
@@ -24,10 +24,10 @@ export const Header: React.FC = () => {
   }, [isInitialized, initialize])
 
   useEffect(() => {
-    if (accessToken && isInitialized) {
+    if (isAuthenticated && isInitialized) {
       refreshCart()
     }
-  }, [accessToken, refreshCart, isInitialized])
+  }, [isAuthenticated, refreshCart, isInitialized])
 
   const handleLogout = () => {
     logout()
@@ -103,7 +103,7 @@ export const Header: React.FC = () => {
               {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </Button>
 
-            {accessToken ? (
+            {isAuthenticated ? (
               <div className="flex items-center space-x-2">
                 {user?.name && (
                   <span className="text-sm text-muted-foreground hidden sm:inline">Hello, {user.name}</span>

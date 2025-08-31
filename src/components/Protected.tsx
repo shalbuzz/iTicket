@@ -13,7 +13,7 @@ interface ProtectedProps {
 }
 
 export const Protected: React.FC<ProtectedProps> = ({ children }) => {
-  const { accessToken, isInitialized, initialize } = useAuth()
+  const { isAuthenticated, isInitialized, initialize } = useAuth()
   const navigate = useNavigate()
   const [showDialog, setShowDialog] = useState(false)
 
@@ -24,10 +24,10 @@ export const Protected: React.FC<ProtectedProps> = ({ children }) => {
   }, [isInitialized, initialize])
 
   useEffect(() => {
-    if (isInitialized && !accessToken) {
+    if (isInitialized && !isAuthenticated) {
       setShowDialog(true)
     }
-  }, [isInitialized, accessToken])
+  }, [isInitialized, isAuthenticated])
 
   // Show loading skeleton while initializing
   if (!isInitialized) {
@@ -49,7 +49,7 @@ export const Protected: React.FC<ProtectedProps> = ({ children }) => {
     )
   }
 
-  if (!accessToken) {
+  if (!isAuthenticated) {
     return (
       <Dialog
         open={showDialog}
