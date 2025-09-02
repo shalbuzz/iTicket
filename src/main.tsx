@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect } from "react"
+import React from "react"
 import ReactDOM from "react-dom/client"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import "./index.css"
@@ -16,26 +16,18 @@ import { CheckoutPage } from "./pages/CheckoutPage"
 import { OrdersPage } from "./pages/OrdersPage"
 import { FavoritesPage } from "./pages/FavoritesPage"
 import { NotificationsPage } from "./pages/NotificationsPage"
-import { useAuth } from "./stores/auth"
 
+// необязательно, но можно подчистить мусорные значения
 const cleanupTokens = () => {
-  const badToken = localStorage.getItem("accessToken")
-  if (badToken === "undefined" || badToken === "null" || badToken === "") {
+  const bad = localStorage.getItem("accessToken")
+  if (bad === "undefined" || bad === "null" || bad === "") {
     localStorage.removeItem("accessToken")
-    localStorage.removeItem("auth-storage")
   }
+  // auth-storage трогать не нужно — им управляет zustand persist
 }
-
 cleanupTokens()
 
 const App = () => {
-  const { initialize } = useAuth()
-
-  useEffect(() => {
-    console.log("[v0] App: Initializing auth...")
-    initialize()
-  }, [initialize])
-
   return (
     <BrowserRouter>
       <Routes>
@@ -44,6 +36,7 @@ const App = () => {
         <Route path="/" element={<Layout />}>
           <Route index element={<EventsPage />} />
           <Route path="events/:id" element={<EventPage />} />
+
           <Route
             path="cart"
             element={
@@ -93,5 +86,5 @@ const App = () => {
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>,
+  </React.StrictMode>
 )

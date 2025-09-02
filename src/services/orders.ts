@@ -15,21 +15,11 @@ export interface PageResponse<T> {
   pageSize: number
 }
 
-export const createOrder = async (promoCode?: string | null): Promise<{ id: string }> => {
-  const response = await api.post("/orders", { promoCode })
-  return response.data
-}
+export const createOrder = async (promoCode?: string | null) =>
+  (await api.post("/orders", { promoCode: promoCode ?? null })).data
 
-export const getMyOrders = async (page?: number, pageSize?: number): Promise<PageResponse<OrderListItem>> => {
-  const params = new URLSearchParams()
-  if (page !== undefined) params.append("page", page.toString())
-  if (pageSize !== undefined) params.append("pageSize", pageSize.toString())
+export const getMyOrders = async (page?: number, pageSize?: number) =>
+  (await api.get("/orders/mine", { params: { page, pageSize } })).data
 
-  const response = await api.get(`/orders?${params.toString()}`)
-  return response.data
-}
-
-export const getOrder = async (id: string): Promise<any> => {
-  const response = await api.get(`/orders/${id}`)
-  return response.data
-}
+export const getOrder = async (id: string) =>
+  (await api.get(`/orders/${id}`)).data

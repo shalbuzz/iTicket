@@ -1,52 +1,45 @@
-import axios from "axios"
+import axios from "axios";
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL as string,
-})
+const base = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+const api = axios.create({ baseURL: base });
 
-// Helper function to properly validate tokens
-function getToken(): string | null {
-  const raw = localStorage.getItem("accessToken")
-  // Filter out garbage values that might be stored
-  if (!raw || raw === "undefined" || raw === "null") return null
-  return raw
+function getTokenFromPersist(): string | null {
+  const raw = localStorage.getItem("auth-storage");
+  if (!raw) return null;
+  try {
+    const t = JSON.parse(raw)?.state?.accessToken;
+    if (!t || typeof t !== "string") return null;
+    const v = t.trim();
+    return v && v !== "undefined" && v !== "null" ? v : null;
+  } catch { return null; }
 }
 
-// Request interceptor для добавления токена авторизации
-api.interceptors.request.use(
-  (config) => {
-    const token = getToken()
+api.interceptors.request.use((cfg) => {
+  const url = (cfg.url ?? "").toLowerCase();
+  const isAuth = url.includes("/auth/login") || url.includes("/auth/register") || url.includes("/auth/refresh");
+  cfg.headers = cfg.headers ?? {};
+  if (!isAuth) {
+    const token = getTokenFromPersist();
+    if (token) (cfg.headers as any).Authorization = `Bearer ${token}`;
+    else delete (cfg.headers as any).Authorization;
+  } else {
+    delete (cfg.headers as any).Authorization;
+  }
+  return cfg;
+});
 
-    // Don't add token to auth endpoints
-    const url = (config.url ?? "").toLowerCase()
-    const isAuthRoute = url.includes("/auth/login") || url.includes("/auth/register") || url.includes("/auth/refresh")
-
-    config.headers = config.headers ?? {}
-
-    if (!isAuthRoute && token) {
-      ;(config.headers as any).Authorization = `Bearer ${token}`
-    } else {
-      // Remove Authorization header for auth routes
-      delete (config.headers as any).Authorization
-    }
-
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  },
-)
-
-// Response interceptor для обработки 401 ошибок
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401 && window.location.pathname !== "/login") {
-      localStorage.removeItem("accessToken")
-      window.location.href = "/login"
+  (r) => r,
+  (err) => {
+    const status = err?.response?.status;
+    const url = (err?.config?.url ?? "").toLowerCase();
+    const isAuth = url.includes("/auth/login") || url.includes("/auth/register") || url.includes("/auth/refresh");
+    if (status === 401 && !isAuth && location.pathname !== "/login") {
+      localStorage.removeItem("auth-storage");
+      window.location.assign("/login");
     }
-    return Promise.reject(error)
-  },
-)
+    return Promise.reject(err);
+  }
+);
 
-export default api
+export default api;

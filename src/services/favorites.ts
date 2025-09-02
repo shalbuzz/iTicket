@@ -4,12 +4,12 @@ import type { EventListItem } from "./events"
 export type FavoriteEvent = EventListItem
 
 export const listFavorites = async (): Promise<EventListItem[]> => {
-  const response = await api.get("/favorites")
-  return response.data
+  const { data } = await api.get("/favorites/mine")
+  return data
 }
 
 export const addFavorite = async (eventId: string): Promise<void> => {
-  await api.post("/favorites", { eventId })
+  await api.post(`/favorites/${eventId}`)
 }
 
 export const removeFavorite = async (eventId: string): Promise<void> => {
