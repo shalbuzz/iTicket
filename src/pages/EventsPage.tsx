@@ -204,7 +204,7 @@ export const EventsPage: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((category) => (
+                  {(categories || []).map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}
                     </SelectItem>
