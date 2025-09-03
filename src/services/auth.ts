@@ -16,6 +16,12 @@ export interface RegisterReq {
   password: string
 }
 
+export interface User {
+  id: string
+  email: string
+  fullName: string
+}
+
 export const login = async (req: LoginReq): Promise<AuthRes> => {
   const response = await api.post("/auth/login", req)
   return response.data
@@ -23,4 +29,9 @@ export const login = async (req: LoginReq): Promise<AuthRes> => {
 
 export const register = async (req: RegisterReq): Promise<void> => {
   await api.post("/auth/register", req)
+}
+
+export const getMe = async (): Promise<User> => {
+  const response = await api.get("/auth/me")
+  return response.data
 }

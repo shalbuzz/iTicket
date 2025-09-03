@@ -25,7 +25,7 @@ export const getMyOrders = async (page?: number, pageSize?: number): Promise<Pag
   if (page !== undefined) params.append("page", page.toString())
   if (pageSize !== undefined) params.append("pageSize", pageSize.toString())
 
-  const response = await api.get(`/orders?${params.toString()}`)
+  const response = await api.get(`/orders/mine?${params.toString()}`)
   return response.data
 }
 

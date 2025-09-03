@@ -73,3 +73,8 @@ export const getCategories = async (search?: string): Promise<string[]> => {
   const response = await api.get(`/categories${params}`)
   return response.data
 }
+
+export const getEventsByOrganizer = async (organizerId: string): Promise<EventListItem[]> => {
+  const response = await api.get(`/events/by-organizer/${organizerId}`)
+  return response.data
+}
