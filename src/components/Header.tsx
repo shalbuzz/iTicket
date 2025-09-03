@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 import { useAuth } from "../stores/auth"
 import { useCart } from "../stores/cart"
 import { useTheme } from "../hooks/use-theme"
@@ -20,7 +20,7 @@ export const Header: React.FC = () => {
   const { count: cartCount, refresh: refreshCart } = useCart()
   const { theme, toggleTheme } = useTheme()
 
-  // При успешной авторизации — подтянуть корзину
+  // При успешной авторизации — подтянуть корзину (404 = пусто, стор должен обработать)
   useEffect(() => {
     if (isAuth) {
       refreshCart().catch(() => {})
@@ -32,14 +32,18 @@ export const Header: React.FC = () => {
     navigate("/login", { replace: true })
   }
 
-  const navLinks = [
-    { to: "/", label: "Home", icon: Home },
-    { to: "/", label: "Events", icon: Ticket },               // при желании вынеси на /events
-    { to: "/cart", label: "Cart", icon: ShoppingCart, badge: cartCount },
-    { to: "/orders", label: "Orders", icon: ShoppingCart },
-    { to: "/favorites", label: "Favorites", icon: Star },
-    { to: "/notifications", label: "Notifications", icon: Bell, badge: 0 },
-  ]
+  // УНИКАЛЬНЫЕ ключи + нормальный путь для Events
+  const navLinks = useMemo(
+    () => [
+      { id: "home",     to: "/",         label: "Home",         icon: Home },
+      { id: "events",   to: "/events",   label: "Events",       icon: Ticket }, // <— был "/", сделал "/events"
+      { id: "cart",     to: "/cart",     label: "Cart",         icon: ShoppingCart, badge: cartCount },
+      { id: "orders",   to: "/orders",   label: "Orders",       icon: ShoppingCart },
+      { id: "favorites",to: "/favorites",label: "Favorites",    icon: Star },
+      { id: "notifs",   to: "/notifications", label: "Notifications", icon: Bell, badge: 0 },
+    ],
+    [cartCount]
+  )
 
   return (
     <header className="border-b bg-background">
@@ -51,8 +55,8 @@ export const Header: React.FC = () => {
           </div>
 
           <nav className="hidden md:flex items-center space-x-1">
-            {navLinks.map(({ to, label, icon: Icon, badge }) => (
-              <Button key={to} variant="ghost" asChild className="relative">
+            {navLinks.map(({ id, to, label, icon: Icon, badge }) => (
+              <Button key={id} variant="ghost" asChild className="relative">
                 <Link to={to} className="flex items-center space-x-2">
                   <Icon className="h-4 w-4" />
                   <span>{label}</span>
@@ -74,8 +78,8 @@ export const Header: React.FC = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                {navLinks.map(({ to, label, icon: Icon, badge }) => (
-                  <DropdownMenuItem key={to} asChild>
+                {navLinks.map(({ id, to, label, icon: Icon, badge }) => (
+                  <DropdownMenuItem key={id} asChild>
                     <Link to={to} className="flex items-center space-x-2">
                       <Icon className="h-4 w-4" />
                       <span>{label}</span>

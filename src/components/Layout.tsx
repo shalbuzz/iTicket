@@ -2,7 +2,6 @@ import type React from "react"
 import { Outlet } from "react-router-dom"
 import { Header } from "./Header"
 import { NetworkStatus } from "./NetworkStatus"
-import { AuthDebug } from "./AuthDebug"
 import { Toaster } from "./ui/toaster"
 
 export const Layout: React.FC = () => {
@@ -14,7 +13,7 @@ export const Layout: React.FC = () => {
         <Outlet />
       </main>
       <Toaster />
-      <AuthDebug />
+  
     </div>
   )
 }
