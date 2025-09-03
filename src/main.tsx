@@ -34,10 +34,11 @@ const App = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/" element={<Layout />}>
-          <Route index element={<EventsPage />} />
-          <Route path="events/:id" element={<EventPage />} />
+          <Route key="home" index element={<EventsPage />} />
+          <Route key="event-details" path="events/:id" element={<EventPage />} />
 
           <Route
+            key="cart"
             path="cart"
             element={
               <Protected>
@@ -46,6 +47,7 @@ const App = () => {
             }
           />
           <Route
+            key="checkout"
             path="checkout"
             element={
               <Protected>
@@ -54,6 +56,7 @@ const App = () => {
             }
           />
           <Route
+            key="orders"
             path="orders"
             element={
               <Protected>
@@ -62,6 +65,7 @@ const App = () => {
             }
           />
           <Route
+            key="favorites"
             path="favorites"
             element={
               <Protected>
@@ -70,6 +74,7 @@ const App = () => {
             }
           />
           <Route
+            key="notifications"
             path="notifications"
             element={
               <Protected>

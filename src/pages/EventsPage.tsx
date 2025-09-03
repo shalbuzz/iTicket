@@ -43,7 +43,7 @@ export const EventsPage: React.FC = () => {
 
         const params: EventSearchParams = {
           take: 20,
-          skip: reset ? 0 : events.length,
+          skip: reset ? 0 : events?.length || 0,
         }
 
         if (searchQuery) params.q = searchQuery
@@ -54,9 +54,9 @@ export const EventsPage: React.FC = () => {
         const response = await searchEvents(params)
 
         if (reset) {
-          setEvents(response.items)
+          setEvents(response.items || [])
         } else {
-          setEvents((prev) => [...prev, ...response.items])
+          setEvents((prev) => [...(prev || []), ...(response.items || [])])
         }
 
         setHasMore(response.hasMore)
@@ -69,7 +69,7 @@ export const EventsPage: React.FC = () => {
         setLoadingMore(false)
       }
     },
-    [searchQuery, categoryFilter, fromDate, toDate, events.length],
+    [searchQuery, categoryFilter, fromDate, toDate, events?.length],
   )
 
   useEffect(() => {
@@ -240,12 +240,12 @@ export const EventsPage: React.FC = () => {
 
         {/* Events Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((event, index) => (
+          {(events || []).map((event, index) => (
             <EventCard key={event.id} event={event} index={index} />
           ))}
         </div>
 
-        {hasMore && events.length > 0 && (
+        {hasMore && (events?.length || 0) > 0 && (
           <div className="text-center">
             <Button
               onClick={() => loadEvents(false)}
@@ -260,7 +260,7 @@ export const EventsPage: React.FC = () => {
         )}
 
         {/* Empty State */}
-        {events.length === 0 && !loading && (
+        {(events?.length || 0) === 0 && !loading && (
           <EmptyState
             icon={<Ticket className="h-16 w-16 text-primary/40" />}
             title="No events found"
