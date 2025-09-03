@@ -8,7 +8,7 @@ import { Badge } from "./ui/badge"
 import { Button } from "./ui/button"
 import { FavoriteButton } from "./FavoriteButton"
 import { Calendar, MapPin, Users, Star } from "./icons"
-import { formatCurrency } from "../lib/utils"
+import { formatCurrency } from "@/lib/utils"
 
 interface EventCardProps {
   event: {

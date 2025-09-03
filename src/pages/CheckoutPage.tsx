@@ -16,7 +16,7 @@ import { PageTitle } from "../components/PageTitle"
 import { PageContainer } from "../components/PageContainer"
 import { LoadingState } from "../components/LoadingState"
 import { CreditCard, Tag, CheckCircle, AlertCircle, ShoppingCart } from "../components/icons"
-import { formatCurrency } from "../lib/utils"
+import { formatCurrency } from "@/lib/utils"
 import { showApiError } from "../lib/api-error"
 import { ok } from "../lib/notify"
 

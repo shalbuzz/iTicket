@@ -34,4 +34,9 @@ export {
   MessageCircle,
   Mail,
   Clock,
+  Plus,
+  Minus,
+  Tag,
+  Loader2,
+  Receipt,
 } from "lucide-react"

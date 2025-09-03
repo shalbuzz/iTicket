@@ -7,7 +7,7 @@ import { Button } from "./ui/button"
 import { Star } from "./icons"
 import { addFavorite, removeFavorite } from "../services/favorites"
 import { useAuth } from "../stores/auth"
-import { toast } from "../hooks/use-toast"
+import { toast } from "@/hooks/use-toast"
 
 interface FavoriteButtonProps {
   eventId: string

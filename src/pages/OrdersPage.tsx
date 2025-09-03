@@ -14,7 +14,7 @@ import { PageContainer } from "../components/PageContainer"
 import { LoadingState } from "../components/LoadingState"
 import { EmptyState } from "../components/EmptyState"
 import { ErrorState } from "../components/ErrorState"
-import { formatCurrency } from "../lib/utils"
+import { formatCurrency } from "@/lib/utils"
 import { showApiError } from "../lib/api-error"
 import { ChevronLeft, ChevronRight, Receipt, Eye } from "../components/icons"
 

@@ -5,7 +5,7 @@ import { useState } from "react"
 import { Button } from "./ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
 import { Share2, Copy, MessageCircle, Mail } from "./icons"
-import { toast } from "../hooks/use-toast"
+import { toast } from "@/hooks/use-toast"
 
 interface ShareButtonProps {
   title: string

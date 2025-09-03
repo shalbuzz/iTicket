@@ -15,7 +15,7 @@ import { PageTitle } from "../components/PageTitle"
 import { PageContainer } from "../components/PageContainer"
 import { LoadingState } from "../components/LoadingState"
 import { EmptyState } from "../components/EmptyState"
-import { formatCurrency } from "../lib/utils"
+import { formatCurrency } from "@/lib/utils"
 import { showApiError } from "../lib/api-error"
 import { ok } from "../lib/notify"
 

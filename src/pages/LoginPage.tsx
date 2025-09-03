@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Alert, AlertDescription } from "../components/ui/alert"
 import { LoadingSpinner } from "../components/LoadingSpinner"
 import { Ticket, Eye, EyeOff, AlertCircle } from "../components/icons"
-import { toast } from "../hooks/use-toast"
+import { toast } from "@/hooks/use-toast"
 import { showApiError } from "../lib/api-error"
 import { Link } from "react-router-dom"
 
