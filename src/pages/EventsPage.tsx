@@ -76,9 +76,10 @@ export const EventsPage: React.FC = () => {
     const loadCategories = async () => {
       try {
         const data = await getCategories()
-        setCategories(data)
+        setCategories(Array.isArray(data) ? data : [])
       } catch (err) {
         console.error("Failed to load categories:", err)
+        setCategories([])
       }
     }
     loadCategories()
@@ -204,11 +205,12 @@ export const EventsPage: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  {(categories || []).map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
+                  {Array.isArray(categories) &&
+                    categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
