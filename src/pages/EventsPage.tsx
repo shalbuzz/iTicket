@@ -1,60 +1,92 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useSearchParams } from "react-router-dom"
 import { motion } from "framer-motion"
-import { listEvents, type EventListItem } from "../services/events"
+import { searchEvents, getCategories, type EventListItem, type EventSearchParams } from "../services/events"
 import { Input } from "../components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
+import { Button } from "../components/ui/button"
 import { PageTitle } from "../components/PageTitle"
 import { PageContainer } from "../components/PageContainer"
 import { EmptyState } from "../components/EmptyState"
 import { ErrorState } from "../components/ErrorState"
 import { EventCard } from "../components/EventCard"
 import { Skeleton } from "../components/ui/skeleton"
-import { Search, Filter, Ticket } from "../components/icons"
+import { Search, Filter, Ticket, Calendar } from "../components/icons"
 import { showApiError } from "../lib/api-error"
 
 export const EventsPage: React.FC = () => {
   const [events, setEvents] = useState<EventListItem[]>([])
-  const [filteredEvents, setFilteredEvents] = useState<EventListItem[]>([])
+  const [categories, setCategories] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [error, setError] = useState("")
+  const [hasMore, setHasMore] = useState(true)
   const [searchParams, setSearchParams] = useSearchParams()
 
   const searchQuery = searchParams.get("q") || ""
-  const categoryFilter = searchParams.get("cat") || ""
+  const categoryFilter = searchParams.get("category") || ""
+  const fromDate = searchParams.get("fromUtc") || ""
+  const toDate = searchParams.get("toUtc") || ""
 
-  useEffect(() => {
-    const loadEvents = async () => {
+  const loadEvents = useCallback(
+    async (reset = false) => {
       try {
-        const data = await listEvents()
-        setEvents(data)
+        if (reset) {
+          setLoading(true)
+          setEvents([])
+        } else {
+          setLoadingMore(true)
+        }
+
+        const params: EventSearchParams = {
+          take: 20,
+          skip: reset ? 0 : events.length,
+        }
+
+        if (searchQuery) params.q = searchQuery
+        if (categoryFilter) params.category = categoryFilter
+        if (fromDate) params.fromUtc = fromDate
+        if (toDate) params.toUtc = toDate
+
+        const response = await searchEvents(params)
+
+        if (reset) {
+          setEvents(response.items)
+        } else {
+          setEvents((prev) => [...prev, ...response.items])
+        }
+
+        setHasMore(response.hasMore)
+        setError("")
       } catch (err: any) {
         showApiError(err)
         setError("Failed to load events")
       } finally {
         setLoading(false)
+        setLoadingMore(false)
+      }
+    },
+    [searchQuery, categoryFilter, fromDate, toDate, events.length],
+  )
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await getCategories()
+        setCategories(data)
+      } catch (err) {
+        console.error("Failed to load categories:", err)
       }
     }
-
-    loadEvents()
+    loadCategories()
   }, [])
 
   useEffect(() => {
-    let filtered = events
-
-    if (searchQuery) {
-      filtered = filtered.filter((event) => event.title.toLowerCase().includes(searchQuery.toLowerCase()))
-    }
-
-    if (categoryFilter) {
-      filtered = filtered.filter((event) => event.category === categoryFilter)
-    }
-
-    setFilteredEvents(filtered)
-  }, [events, searchQuery, categoryFilter])
+    loadEvents(true)
+  }, [searchQuery, categoryFilter, fromDate, toDate])
 
   const handleSearchChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -69,24 +101,46 @@ export const EventsPage: React.FC = () => {
   const handleCategoryChange = (value: string) => {
     const params = new URLSearchParams(searchParams.toString())
     if (value && value !== "all") {
-      params.set("cat", value)
+      params.set("category", value)
     } else {
-      params.delete("cat")
+      params.delete("category")
     }
     setSearchParams(params)
   }
 
-  const categories = Array.from(new Set(events.map((e) => e.category).filter(Boolean)))
+  const handleFromDateChange = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (value) {
+      params.set("fromUtc", value)
+    } else {
+      params.delete("fromUtc")
+    }
+    setSearchParams(params)
+  }
+
+  const handleToDateChange = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (value) {
+      params.set("toUtc", value)
+    } else {
+      params.delete("toUtc")
+    }
+    setSearchParams(params)
+  }
 
   if (loading) {
     return (
       <PageContainer>
         <PageTitle>Discover Events</PageTitle>
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <div className="relative flex-1">
-            <Skeleton className="h-12 w-full" />
+        <div className="space-y-4 mb-8">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Skeleton className="h-12 flex-1" />
+            <Skeleton className="h-12 w-full sm:w-48" />
           </div>
-          <Skeleton className="h-12 w-full sm:w-48" />
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Skeleton className="h-12 flex-1" />
+            <Skeleton className="h-12 flex-1" />
+          </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -112,7 +166,7 @@ export const EventsPage: React.FC = () => {
     return (
       <PageContainer>
         <PageTitle>Discover Events</PageTitle>
-        <ErrorState message={error} onRetry={() => window.location.reload()} />
+        <ErrorState message={error} onRetry={() => loadEvents(true)} />
       </PageContainer>
     )
   }
@@ -127,11 +181,10 @@ export const EventsPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Enhanced Search and Filter Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border shadow-sm"
+          className="bg-card/50 backdrop-blur-sm rounded-xl p-6 border shadow-sm space-y-4"
         >
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
@@ -160,27 +213,64 @@ export const EventsPage: React.FC = () => {
               </Select>
             </div>
           </div>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="date"
+                placeholder="From date"
+                value={fromDate}
+                onChange={(e) => handleFromDateChange(e.target.value)}
+                className="pl-10 h-12 bg-background/50 border-border/50 focus:bg-background transition-colors"
+              />
+            </div>
+            <div className="relative flex-1">
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="date"
+                placeholder="To date"
+                value={toDate}
+                onChange={(e) => handleToDateChange(e.target.value)}
+                className="pl-10 h-12 bg-background/50 border-border/50 focus:bg-background transition-colors"
+              />
+            </div>
+          </div>
         </motion.div>
 
         {/* Events Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map((event, index) => (
+          {events.map((event, index) => (
             <EventCard key={event.id} event={event} index={index} />
           ))}
         </div>
 
+        {hasMore && events.length > 0 && (
+          <div className="text-center">
+            <Button
+              onClick={() => loadEvents(false)}
+              disabled={loadingMore}
+              variant="outline"
+              size="lg"
+              className="min-w-32"
+            >
+              {loadingMore ? "Loading..." : "Show More"}
+            </Button>
+          </div>
+        )}
+
         {/* Empty State */}
-        {filteredEvents.length === 0 && !loading && (
+        {events.length === 0 && !loading && (
           <EmptyState
             icon={<Ticket className="h-16 w-16 text-primary/40" />}
             title="No events found"
             description={
-              searchQuery || categoryFilter
+              searchQuery || categoryFilter || fromDate || toDate
                 ? "Try adjusting your search criteria or browse all events."
                 : "There are no events available at the moment. Check back later for exciting new events!"
             }
             action={
-              searchQuery || categoryFilter
+              searchQuery || categoryFilter || fromDate || toDate
                 ? {
                     label: "Clear filters",
                     onClick: () => setSearchParams({}),

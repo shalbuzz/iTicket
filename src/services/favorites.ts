@@ -1,27 +1,26 @@
-// src/services/favorites.ts
 import api from "../lib/api"
+import type { EventListItem } from "./events"
 
-export type FavoriteEvent = {
-  id: string            // <-- важно: id, НЕ eventId
-  title: string
-  category?: string
-  imageUrl?: string
-  date?: string
-  priceFrom?: number
+export type FavoriteEvent = EventListItem
+
+export const listFavorites = async (): Promise<EventListItem[]> => {
+  const response = await api.get("/favorites")
+  return response.data
 }
 
-export async function listFavorites(): Promise<FavoriteEvent[]> {
-  const { data } = await api.get("/favorites/mine")
-  // предполагаем, что бэк отдаёт массив EventListItemDto с полями id/title/...
-  return data as FavoriteEvent[]
-}
-
-export async function addFavorite(eventId: string): Promise<void> {
-  if (!eventId) throw new Error("eventId is required")
+export const addFavorite = async (eventId: string): Promise<void> => {
   await api.post(`/favorites/${eventId}`)
 }
 
-export async function removeFavorite(eventId: string): Promise<void> {
-  if (!eventId) throw new Error("eventId is required")
+export const removeFavorite = async (eventId: string): Promise<void> => {
   await api.delete(`/favorites/${eventId}`)
+}
+
+export const isFavorite = async (eventId: string): Promise<boolean> => {
+  try {
+    const response = await api.get(`/favorites/${eventId}`)
+    return response.status === 200
+  } catch {
+    return false
+  }
 }

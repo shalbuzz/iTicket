@@ -20,11 +20,11 @@ export interface PaymentDetails {
 }
 
 export const createIntent = async (orderId: string): Promise<PaymentIntentResponse> => {
-  const { data } = await api.post("/payments/intent", { orderId })
-  return data
+  const response = await api.post("/payments/intent", { orderId })
+  return response.data
 }
 
 export const capture = async (paymentId: string): Promise<PaymentDetails> => {
-  const { data } = await api.post(`/payments/${paymentId}/capture`)
-  return data
+  const response = await api.post(`/payments/${paymentId}/capture`)
+  return response.data
 }

@@ -1,64 +1,39 @@
-// src/services/cart.ts
 import api from "../lib/api"
 
-export type CartItem = {
-  itemId: string      // GUID cart item'a (нужен для DELETE/PATCH)
+export interface CartItem {
+  id: string
   ticketTypeId: string
   quantity: number
   unitPrice: number
   lineTotal: number
 }
 
-export type CartResponse = {
-  id?: string
+export interface CartDetails {
+  id: string
+  userId: string
   items: CartItem[]
-  total: number
 }
 
-/**
- * Полная корзина (для страницы /cart).
- * 404 => пустая корзина (items: [], total: 0)
- */
-export async function getMyCart(): Promise<CartResponse> {
-  try {
-    const { data } = await api.get("/cart/mine")
-    return data
-  } catch (err: any) {
-    if (err?.response?.status === 404) {
-      return { items: [], total: 0 }
-    }
-    throw err
-  }
+export interface AddCartItemReq {
+  ticketTypeId: string
+  quantity: number
 }
 
-/**
- * Лёгкий счётчик для хедера. Ошибки не логируем, 404 => 0.
- */
-export async function getCartCount(): Promise<number> {
-  try {
-    const { data } = await api.get("/cart/mine")
-    return Array.isArray(data?.items) ? data.items.length : 0
-  } catch (err: any) {
-    if (err?.response?.status === 404) return 0
-    return 0
-  }
+export type CartResponse = CartDetails
+
+export const getMyCart = async (): Promise<CartDetails> => {
+  const response = await api.get("/cart")
+  return response.data
 }
 
-export async function addCartItem(ticketTypeId: string, quantity: number) {
-  const { data } = await api.post("/cart/items", { ticketTypeId, quantity })
-  return data as CartResponse
+export const addCartItem = async (req: AddCartItemReq): Promise<void> => {
+  await api.post("/cart/items", req)
 }
 
-export async function updateCartItemQty(itemId: string, quantity: number) {
-  const { data } = await api.patch(`/cart/items/${itemId}`, { quantity })
-  return data as CartResponse
+export const updateCartItem = async (itemId: string, quantity: number): Promise<void> => {
+  await api.put(`/cart/items/${itemId}`, { quantity })
 }
 
-export async function removeCartItem(itemId: string) {
-  const { data } = await api.delete(`/cart/items/${itemId}`)
-  return data as CartResponse
-}
-
-export async function clearCart() {
-  await api.delete("/cart/clear")
+export const removeCartItem = async (itemId: string): Promise<void> => {
+  await api.delete(`/cart/items/${itemId}`)
 }

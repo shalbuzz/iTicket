@@ -1,62 +1,86 @@
 "use client"
 
-import React, { useState } from "react"
+import type React from "react"
+import { useState } from "react"
+import { motion } from "framer-motion"
+import { Button } from "./ui/button"
+import { Star } from "./icons"
 import { addFavorite, removeFavorite } from "../services/favorites"
-import { Star } from "./icons" // если нет icons.ts — убери импорт и иконку
+import { useAuth } from "../stores/auth"
+import { toast } from "../hooks/use-toast"
 
-// простая проверка GUID
-const isGuid = (s?: string) =>
-  !!s && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(s)
-
-type Props = {
-  eventId: string | undefined
+interface FavoriteButtonProps {
+  eventId: string
   isFavorite?: boolean
-  size?: "sm" | "md"
-  onChange?: (next: boolean) => void
+  onToggle?: (isFavorite: boolean) => void
+  size?: "sm" | "md" | "lg"
 }
 
-export const FavoriteButton: React.FC<Props> = ({ eventId, isFavorite = false, size = "md", onChange }) => {
-  const [busy, setBusy] = useState(false)
-  const [fav, setFav] = useState(!!isFavorite)
+export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
+  eventId,
+  isFavorite = false,
+  onToggle,
+  size = "md",
+}) => {
+  const [favorite, setFavorite] = useState(isFavorite)
+  const [loading, setLoading] = useState(false)
+  const { accessToken } = useAuth()
 
-  const canUse = isGuid(eventId)
-  const dim = size === "sm" ? "h-8 px-3 py-1.5 text-xs" : "h-9 px-4 py-2 text-sm"
+  const handleToggle = async () => {
+    if (!accessToken) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to add favorites.",
+        variant: "destructive",
+      })
+      return
+    }
 
-  async function handleClick() {
-    if (!canUse || busy) return
-    setBusy(true)
+    setLoading(true)
     try {
-      if (fav) {
-        await removeFavorite(eventId!)
-        setFav(false)
-        onChange?.(false)
+      if (favorite) {
+        await removeFavorite(eventId)
+        setFavorite(false)
+        toast({ title: "Removed from favorites" })
       } else {
-        // addFavorite игнорит 409 (уже в избранном)
-        await addFavorite(eventId!)
-        setFav(true)
-        onChange?.(true)
+        await addFavorite(eventId)
+        setFavorite(true)
+        toast({ title: "Added to favorites" })
       }
+      onToggle?.(favorite)
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update favorites",
+        variant: "destructive",
+      })
     } finally {
-      setBusy(false)
+      setLoading(false)
     }
   }
 
+  const sizeClasses = {
+    sm: "h-8 w-8",
+    md: "h-10 w-10",
+    lg: "h-12 w-12",
+  }
+
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      disabled={!canUse || busy}
-      className={`inline-flex items-center gap-1 rounded-xl border ${dim} transition
-        ${fav ? "bg-yellow-50 border-yellow-200 text-yellow-700" : "hover:bg-muted"}
-        ${!canUse ? "opacity-50 cursor-not-allowed" : ""}
-      `}
-      aria-pressed={fav}
-      title={!canUse ? "Invalid id" : fav ? "Remove from favorites" : "Add to favorites"}
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={handleToggle}
+      disabled={loading}
+      className={`${sizeClasses[size]} hover:bg-secondary/20 transition-colors`}
+      aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
     >
-      <Star className="h-4 w-4" />
-      {fav ? "In favorites" : "Add to favorites"}
-    </button>
+      <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+        <Star
+          className={`h-5 w-5 transition-colors ${
+            favorite ? "fill-secondary text-secondary" : "text-muted-foreground hover:text-secondary"
+          }`}
+        />
+      </motion.div>
+    </Button>
   )
 }
-
-export default FavoriteButton

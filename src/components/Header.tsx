@@ -2,7 +2,6 @@
 
 import type React from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { useEffect, useMemo } from "react"
 import { useAuth } from "../stores/auth"
 import { useCart } from "../stores/cart"
 import { useTheme } from "../hooks/use-theme"
@@ -10,40 +9,58 @@ import { Button } from "./ui/button"
 import { Badge } from "./ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu"
 import { Ticket, Home, ShoppingCart, Bell, Star, LogIn, LogOut, Menu, Moon, Sun } from "./icons"
+import { useEffect, useState } from "react"
 
 export const Header: React.FC = () => {
-  const isAuth = useAuth((s) => s.isAuthenticated())
-  const user = useAuth((s) => s.user)
-  const clearAuth = useAuth((s) => s.clear)
+  const { isAuthenticated, user, logout, initialize, isInitialized } = useAuth()
   const navigate = useNavigate()
-
   const { count: cartCount, refresh: refreshCart } = useCart()
   const { theme, toggleTheme } = useTheme()
+  const [authState, setAuthState] = useState(false)
 
-  // При успешной авторизации — подтянуть корзину (404 = пусто, стор должен обработать)
   useEffect(() => {
-    if (isAuth) {
-      refreshCart().catch(() => {})
+    if (!isInitialized) {
+      initialize()
     }
-  }, [isAuth, refreshCart])
+  }, [isInitialized, initialize])
+
+  useEffect(() => {
+    if (isAuthenticated && isInitialized) {
+      refreshCart()
+    }
+  }, [isAuthenticated, refreshCart, isInitialized])
+
+  useEffect(() => {
+    const checkAuthState = () => {
+      const currentAuthState = isAuthenticated
+      if (currentAuthState !== authState) {
+        console.log("[v0] Header: Auth state changed to:", currentAuthState)
+        setAuthState(currentAuthState)
+      }
+    }
+
+    checkAuthState()
+    const interval = setInterval(checkAuthState, 100)
+    return () => clearInterval(interval)
+  }, [isAuthenticated, authState])
 
   const handleLogout = () => {
-    clearAuth()
-    navigate("/login", { replace: true })
+    console.log("[v0] Header: Logging out...")
+    logout()
+    setAuthState(false)
+    navigate("/login")
   }
 
-  // УНИКАЛЬНЫЕ ключи + нормальный путь для Events
-  const navLinks = useMemo(
-    () => [
-      { id: "home",     to: "/",         label: "Home",         icon: Home },
-      { id: "events",   to: "/events",   label: "Events",       icon: Ticket }, // <— был "/", сделал "/events"
-      { id: "cart",     to: "/cart",     label: "Cart",         icon: ShoppingCart, badge: cartCount },
-      { id: "orders",   to: "/orders",   label: "Orders",       icon: ShoppingCart },
-      { id: "favorites",to: "/favorites",label: "Favorites",    icon: Star },
-      { id: "notifs",   to: "/notifications", label: "Notifications", icon: Bell, badge: 0 },
-    ],
-    [cartCount]
-  )
+  const navLinks = [
+    { to: "/", label: "Home", icon: Home },
+    { to: "/", label: "Events", icon: Ticket },
+    { to: "/cart", label: "Cart", icon: ShoppingCart, badge: cartCount },
+    { to: "/orders", label: "Orders", icon: ShoppingCart },
+    { to: "/favorites", label: "Favorites", icon: Star },
+    { to: "/notifications", label: "Notifications", icon: Bell, badge: 0 },
+  ]
+
+  console.log("[v0] Header render - isAuthenticated:", isAuthenticated, "authState:", authState, "user:", user)
 
   return (
     <header className="border-b bg-background">
@@ -55,8 +72,8 @@ export const Header: React.FC = () => {
           </div>
 
           <nav className="hidden md:flex items-center space-x-1">
-            {navLinks.map(({ id, to, label, icon: Icon, badge }) => (
-              <Button key={id} variant="ghost" asChild className="relative">
+            {navLinks.map(({ to, label, icon: Icon, badge }) => (
+              <Button key={to} variant="ghost" asChild className="relative">
                 <Link to={to} className="flex items-center space-x-2">
                   <Icon className="h-4 w-4" />
                   <span>{label}</span>
@@ -78,8 +95,8 @@ export const Header: React.FC = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                {navLinks.map(({ id, to, label, icon: Icon, badge }) => (
-                  <DropdownMenuItem key={id} asChild>
+                {navLinks.map(({ to, label, icon: Icon, badge }) => (
+                  <DropdownMenuItem key={to} asChild>
                     <Link to={to} className="flex items-center space-x-2">
                       <Icon className="h-4 w-4" />
                       <span>{label}</span>
@@ -105,7 +122,7 @@ export const Header: React.FC = () => {
               {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </Button>
 
-            {isAuth ? (
+            {isAuthenticated || authState ? (
               <div className="flex items-center space-x-2">
                 {user?.name && (
                   <span className="text-sm text-muted-foreground hidden sm:inline">Hello, {user.name}</span>

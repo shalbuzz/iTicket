@@ -46,41 +46,62 @@ export const LoginPage: React.FC = () => {
     return Object.keys(errors).length === 0
   }
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setError("")
-  setFieldErrors({})
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    setFieldErrors({})
 
-  if (!validateForm()) return
-  setLoading(true)
-
-  try {
-    const response = await login({ email, password }) // { access, refresh }
-    if (!response?.access) throw new Error("Invalid login response - no access token")
-
-    const user = { id: "temp-id", email, name: email.split("@")[0] }
-    // сохраняем токен и пользователя в persist-стор
-    setToken(response.access, user)
-
-    toast({ title: "Welcome back!", description: "Successfully signed in." })
-
-    // ВАЖНО: один раз сделаем "жёсткий" переход, чтобы axios 100% увидел токен из persist
-    window.location.assign("/")
-    // если хочешь navigate — оставь, но при гонках может не подцепиться:
-    // navigate("/", { replace: true })
-  } catch (err: any) {
-    if (err?.response?.status === 401) {
-      setError("Invalid email or password. Please try again.")
-    } else if (err?.response?.status === 429) {
-      setError("Too many login attempts. Please wait a moment and try again.")
-    } else {
-      showApiError(err)
+    if (!validateForm()) {
+      return
     }
-  } finally {
-    setLoading(false)
-  }
-}
 
+    setLoading(true)
+
+    try {
+      console.log("[v0] Starting login process...")
+      const response = await login({ email, password })
+      console.log("[v0] Login response received:", response)
+
+      if (response?.access) {
+        const user = {
+          id: "temp-id",
+          email,
+          name: email.split("@")[0],
+        }
+
+        console.log("[v0] Setting token and user:", { token: response.access, user })
+        setToken(response.access, user)
+
+        const authState = useAuth.getState()
+        console.log("[v0] Auth state after setToken:", {
+          isAuthenticated: authState.isAuthenticated(),
+          hasToken: !!authState.accessToken,
+          user: authState.user,
+        })
+
+        toast({
+          title: "Welcome back!",
+          description: "Successfully signed in to your account.",
+        })
+
+        console.log("[v0] Navigating to home...")
+        navigate("/", { replace: true })
+      } else {
+        throw new Error("Invalid login response - no access token")
+      }
+    } catch (err: any) {
+      console.log("[v0] Login error:", err)
+      if (err.response?.status === 401) {
+        setError("Invalid email or password. Please try again.")
+      } else if (err.response?.status === 429) {
+        setError("Too many login attempts. Please wait a moment before trying again.")
+      } else {
+        showApiError(err)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
